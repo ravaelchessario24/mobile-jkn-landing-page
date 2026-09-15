@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Analisis Sentimen Mobile JKN — Data Science Project</title>
+
+<meta
+  name="description"
+  content="Project Natural Language Processing untuk menganalisis 59.980 ulasan pengguna Mobile JKN menggunakan TF-IDF Bigram dan Multinomial Naive Bayes."
+>
+
+<meta property="og:title" content="Mobile JKN Sentiment Analysis">
+<meta
+  property="og:description"
+  content="NLP & Machine Learning project analyzing Mobile JKN user reviews."
+>
+<meta property="og:type" content="website">
+
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href='data:image/svg+xml;utf8,
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+    <rect width="40" height="40" rx="10" fill="%2309A750"/>
+    <path
+      d="M8 21h5l3-8 4 14 3-9h9"
+      stroke="white"
+      stroke-width="2.4"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>'
+>
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
+
+:root{
+  --green:#09A750;
+  --green-dark:#087C3F;
+  --green-soft:#EAF8F0;
+
+  --ink:#101612;
+  --muted:#66736D;
+
+  --border:#E3E9E6;
+  --white:#FFFFFF;
+
+  --shadow:
+    0 8px 30px rgba(20,40,30,.05);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+
+  background:
+    radial-gradient(
+      circle at 70% 0%,
+      rgba(9,167,80,.08),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #F8FBF9 0%,
+      #FFFFFF 420px
+    );
+
+  color:var(--ink);
+
+  font-family:'Inter',sans-serif;
+
+  -webkit-font-smoothing:antialiased;
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+.container{
+  width:min(1060px,calc(100% - 40px));
+  margin:auto;
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+nav{
+  padding:28px 0;
+}
+
+.nav-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:11px;
+}
+
+.logo-mark{
+  width:38px;
+  height:38px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:var(--green);
+
+  border-radius:11px;
+}
+
+.logo-text{
+  font-size:.92rem;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.logo-text span{
+  display:block;
+
+  margin-top:2px;
+
+  font-size:.68rem;
+  font-weight:500;
+
+  color:var(--muted);
+}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.nav-badge{
+  padding:7px 13px;
+
+  border:1px solid var(--border);
+  border-radius:999px;
+
+  background:var(--white);
+
+  font-size:.7rem;
+  font-weight:700;
+
+  color:var(--muted);
+
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+
+/* =========================================================
+   LANGUAGE SWITCHER
+========================================================= */
+
+.language-switch{
+  display:flex;
+  align-items:center;
+
+  padding:3px;
+
+  background:var(--white);
+
+  border:1px solid var(--border);
+
+  border-radius:999px;
+
+  box-shadow:
+    0 2px 8px rgba(20,40,30,.04);
+}
+
+.lang-btn{
+  border:0;
+
+  background:transparent;
+
+  padding:7px 11px;
+
+  border-radius:999px;
+
+  font-family:inherit;
+
+  font-size:.7rem;
+  font-weight:700;
+
+  color:var(--muted);
+
+  cursor:pointer;
+
+  transition:
+    background .15s ease,
+    color .15s ease,
+    transform .15s ease;
+}
+
+.lang-btn:hover{
+  transform:translateY(-1px);
+}
+
+.lang-btn.active{
+  background:var(--green);
+  color:white;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero{
+  padding:70px 0 75px;
+  max-width:850px;
+}
+
+.hero-label{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  margin-bottom:20px;
+
+  padding:7px 12px;
+
+  background:var(--green-soft);
+
+  border-radius:999px;
+
+  color:var(--green-dark);
+
+  font-size:.72rem;
+  font-weight:700;
+
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+
+.hero-label::before{
+  content:"";
+
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+
+  background:var(--green);
+}
+
+.hero h1{
+  margin:0;
+
+  max-width:800px;
+
+  font-family:'Manrope',sans-serif;
+
+  font-size:clamp(2.8rem,6vw,4.8rem);
+
+  line-height:1.02;
+
+  letter-spacing:-.055em;
+}
+
+.hero h1 .highlight{
+  color:var(--green);
+}
+
+.hero-description{
+  max-width:700px;
+
+  margin:25px 0 0;
+
+  color:var(--muted);
+
+  font-size:1.05rem;
+  line-height:1.75;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+
+  gap:12px;
+
+  margin-top:32px;
+}
+
+.button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+
+  padding:13px 18px;
+
+  border-radius:10px;
+
+  font-size:.86rem;
+  font-weight:700;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    background .15s ease;
+}
+
+.button:hover{
+  transform:translateY(-2px);
+}
+
+.button-primary{
+  background:var(--green);
+  color:white;
+
+  box-shadow:
+    0 7px 18px rgba(9,167,80,.18);
+}
+
+.button-primary:hover{
+  background:var(--green-dark);
+}
+
+.button-secondary{
+  border:1px solid var(--border);
+  background:white;
+
+  color:var(--ink);
+}
+
+.button-secondary:hover{
+  box-shadow:var(--shadow);
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:14px;
+
+  margin-bottom:90px;
+}
+
+.stat{
+  padding:22px;
+
+  background:
+    rgba(255,255,255,.85);
+
+  border:1px solid var(--border);
+
+  border-radius:14px;
+
+  box-shadow:var(--shadow);
+}
+
+.stat-value{
+  font-size:1.55rem;
+  font-weight:800;
+
+  letter-spacing:-.04em;
+}
+
+.stat-label{
+  margin-top:6px;
+
+  color:var(--muted);
+
+  font-size:.75rem;
+  line-height:1.5;
+}
+
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.section{
+  padding:0 0 85px;
+}
+
+.section-header{
+  margin-bottom:28px;
+}
+
+.section-label{
+  margin-bottom:8px;
+
+  color:var(--green);
+
+  font-size:.7rem;
+  font-weight:800;
+
+  letter-spacing:.12em;
+
+  text-transform:uppercase;
+}
+
+.section-title{
+  margin:0;
+
+  font-family:'Manrope',sans-serif;
+
+  font-size:2rem;
+
+  letter-spacing:-.04em;
+}
+
+
+/* =========================================================
+   PROJECT OVERVIEW
+========================================================= */
+
+.overview{
+  display:grid;
+
+  grid-template-columns:
+    1.15fr .85fr;
+
+  gap:18px;
+}
+
+.card{
+  padding:28px;
+
+  background:white;
+
+  border:1px solid var(--border);
+
+  border-radius:16px;
+
+  box-shadow:var(--shadow);
+}
+
+.card h3{
+  margin:0 0 12px;
+
+  font-size:1rem;
+}
+
+.card p{
+  margin:0;
+
+  color:var(--muted);
+
+  font-size:.88rem;
+  line-height:1.7;
+}
+
+
+/* =========================================================
+   TECH STACK
+========================================================= */
+
+.stack{
+  display:flex;
+  flex-wrap:wrap;
+
+  gap:8px;
+
+  margin-top:20px;
+}
+
+.stack span{
+  padding:7px 10px;
+
+  border-radius:7px;
+
+  background:#F3F6F4;
+
+  color:#45544D;
+
+  font-size:.72rem;
+  font-weight:600;
+}
+
+
+/* =========================================================
+   PERFORMANCE
+========================================================= */
+
+.performance{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:14px;
+}
+
+.metric{
+  padding:24px;
+
+  border-radius:14px;
+
+  background:var(--green);
+
+  color:white;
+
+  box-shadow:
+    0 8px 22px rgba(9,167,80,.12);
+}
+
+.metric-label{
+  font-size:.72rem;
+
+  color:rgba(255,255,255,.78);
+
+  margin-bottom:8px;
+}
+
+.metric-value{
+  font-size:1.7rem;
+  font-weight:800;
+
+  letter-spacing:-.04em;
+}
+
+
+/* =========================================================
+   CTA
+========================================================= */
+
+.cta{
+  padding:38px;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--green-dark),
+      var(--green)
+    );
+
+  color:white;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:30px;
+
+  box-shadow:
+    0 10px 30px rgba(9,167,80,.12);
+}
+
+.cta h2{
+  margin:0 0 8px;
+
+  font-family:'Manrope',sans-serif;
+
+  font-size:1.6rem;
+
+  letter-spacing:-.03em;
+}
+
+.cta p{
+  max-width:600px;
+
+  margin:0;
+
+  color:rgba(255,255,255,.78);
+
+  font-size:.84rem;
+  line-height:1.6;
+}
+
+.cta .button{
+  flex-shrink:0;
+
+  background:white;
+
+  color:var(--green-dark);
+}
+
+.cta .button:hover{
+  background:#F5FAF7;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer{
+  padding:30px 0 45px;
+
+  border-top:1px solid var(--border);
+
+  color:var(--muted);
+
+  font-size:.74rem;
+
+  line-height:1.6;
+}
+
+.footer-inner{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  gap:20px;
+}
+
+.footer-title{
+  color:var(--ink);
+  font-weight:700;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:800px){
+
+  .stats{
+    grid-template-columns:
+      repeat(3,1fr);
+  }
+
+  .overview{
+    grid-template-columns:1fr;
+  }
+
+  .performance{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .cta{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+}
+
+@media(max-width:560px){
+
+  .container{
+    width:min(100% - 28px,1060px);
+  }
+
+  nav{
+    padding:20px 0;
+  }
+
+  .nav-badge{
+    display:none;
+  }
+
+  .hero{
+    padding:48px 0 55px;
+  }
+
+  .hero h1{
+    font-size:2.6rem;
+  }
+
+  .hero-description{
+    font-size:.94rem;
+  }
+
+  .stats{
+    grid-template-columns:1fr;
+  }
+
+  .performance{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .card{
+    padding:22px;
+  }
+
+  .cta{
+    padding:28px;
+  }
+
+  .footer-inner{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+<!-- =========================================================
+     NAV
+========================================================= -->
+
+<nav>
+
+  <div class="nav-inner">
+
+    <div class="logo">
+
+      <div class="logo-mark">
+
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 40 40"
+          fill="none"
+          aria-hidden="true"
+        >
+
+          <path
+            d="M8 21h5l3-8 4 14 3-9h9"
+            stroke="white"
+            stroke-width="2.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+        </svg>
+
+      </div>
+
+
+      <div class="logo-text">
+
+        <span id="logoTitle">
+          Mobile JKN
+        </span>
+
+        <span id="logoSubtitle">
+          Project Analisis Sentimen
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="nav-right">
+
+      <div class="nav-badge" id="navBadge">
+        Data Science · NLP
+      </div>
+
+
+      <div class="language-switch">
+
+        <button
+          class="lang-btn active"
+          id="langID"
+          onclick="setLanguage('id')"
+        >
+          ID
+        </button>
+
+        <button
+          class="lang-btn"
+          id="langEN"
+          onclick="setLanguage('en')"
+        >
+          EN
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</nav>
+
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+
+<section class="hero">
+
+
+  <div class="hero-label" id="heroLabel">
+    Project Data Science & NLP
+  </div>
+
+
+  <h1>
+
+    <span id="heroTitleBefore">
+      Memahami
+    </span>
+
+    <span class="highlight">
+      Mobile JKN
+    </span>
+
+    <span id="heroTitleAfter">
+      Melalui Umpan Balik Pengguna.
+    </span>
+
+  </h1>
+
+
+  <p class="hero-description" id="heroDescription">
+
+    Project analisis sentimen end-to-end yang mengeksplorasi
+    pengalaman pengguna aplikasi Mobile JKN melalui ulasan
+    Google Play Store menggunakan Natural Language Processing
+    dan Machine Learning.
+
+  </p>
+
+
+  <div class="hero-actions">
+
+
+    <a
+      class="button button-primary"
+      href="https://dashboard-mobilejkn.streamlit.app/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+
+      <span id="dashboardButton">
+        Jelajahi Dashboard
+      </span>
+
+      <span>↗</span>
+
+    </a>
+
+
+    <a
+      class="button button-secondary"
+      href="https://drive.google.com/drive/folders/1rBS86cZ-c-duangmr3QYNosg9e2aNGP2?usp=sharing"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+
+      <span id="datasetButton">
+        Dataset
+      </span>
+
+      <span>↓</span>
+
+    </a>
+
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     QUICK STATS
+========================================================= -->
+
+<section class="stats">
+
+
+  <div class="stat">
+
+    <div class="stat-value">
+      59,980
+    </div>
+
+    <div class="stat-label" id="statReviews">
+      Ulasan pengguna dianalisis
+    </div>
+
+  </div>
+
+
+  <div class="stat">
+
+    <div class="stat-value">
+      2025–2026
+    </div>
+
+    <div class="stat-label" id="statPeriod">
+      Periode pengumpulan ulasan
+    </div>
+
+  </div>
+
+
+  <div class="stat">
+
+    <div class="stat-value">
+      94.38%
+    </div>
+
+    <div class="stat-label" id="statAccuracy">
+      Akurasi model
+    </div>
+
+  </div>
+
+
+</section>
+
+
+<!-- =========================================================
+     PROJECT OVERVIEW
+========================================================= -->
+
+<section class="section">
+
+
+  <div class="section-header">
+
+    <div class="section-label" id="overviewLabel">
+      Gambaran Project
+    </div>
+
+
+    <h2 class="section-title" id="overviewTitle">
+      Dari ulasan mentah menjadi insight sentimen.
+    </h2>
+
+  </div>
+
+
+  <div class="overview">
+
+
+    <div class="card">
+
+      <h3 id="projectTitle">
+        Tentang Project
+      </h3>
+
+
+      <p id="projectDescription">
+
+        Project ini menganalisis ulasan pengguna aplikasi Mobile JKN
+        yang dikumpulkan dari Google Play Store. Alur pengolahan data
+        mencakup Exploratory Data Analysis (EDA), text preprocessing,
+        pelabelan sentimen, pembobotan kata menggunakan TF-IDF Bigram,
+        klasifikasi dengan machine learning, evaluasi model, serta
+        visualisasi data secara interaktif.
+
+      </p>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3 id="technologyTitle">
+        Teknologi
+      </h3>
+
+
+      <p id="technologyDescription">
+
+        Dibangun menggunakan workflow NLP dan machine learning
+        berbasis Python.
+
+      </p>
+
+
+      <div class="stack">
+
+        <span>Python</span>
+        <span>Pandas</span>
+        <span>Scikit-learn</span>
+        <span>TF-IDF</span>
+        <span>Naive Bayes</span>
+        <span>Streamlit</span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     PERFORMANCE
+========================================================= -->
+
+<section class="section">
+
+
+  <div class="section-header">
+
+    <div class="section-label" id="performanceLabel">
+      Performa Model
+    </div>
+
+
+    <h2 class="section-title" id="performanceTitle">
+      Hasil klasifikasi.
+    </h2>
+
+  </div>
+
+
+  <div class="performance">
+
+
+    <div class="metric">
+
+      <div class="metric-label">
+        Accuracy
+      </div>
+
+      <div class="metric-value">
+        94.38%
+      </div>
+
+    </div>
+
+
+    <div class="metric">
+
+      <div class="metric-label">
+        Precision
+      </div>
+
+      <div class="metric-value">
+        91.15%
+      </div>
+
+    </div>
+
+
+    <div class="metric">
+
+      <div class="metric-label">
+        Recall
+      </div>
+
+      <div class="metric-value">
+        98.89%
+      </div>
+
+    </div>
+
+
+    <div class="metric">
+
+      <div class="metric-label">
+        F1-Score
+      </div>
+
+      <div class="metric-value">
+        94.86%
+      </div>
+
+    </div>
+
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     CTA
+========================================================= -->
+
+<section class="section">
+
+
+  <div class="cta">
+
+
+    <div>
+
+      <h2 id="ctaTitle">
+        Jelajahi hasil analisis.
+      </h2>
+
+
+      <p id="ctaDescription">
+
+        Gunakan dashboard untuk mengeksplorasi distribusi sentimen,
+        kata dominan, evaluasi model, dan melakukan prediksi sentimen
+        terhadap ulasan secara interaktif.
+
+      </p>
+
+    </div>
+
+
+    <a
+      class="button"
+      href="https://dashboard-mobilejkn.streamlit.app/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+
+      <span id="openDashboard">
+        Buka Dashboard
+      </span>
+
+      ↗
+
+    </a>
+
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer>
+
+
+  <div class="footer-inner">
+
+
+    <div>
+
+      <div class="footer-title">
+        Mobile JKN Sentiment Analysis
+      </div>
+
+
+      <div id="footerSubtitle">
+        Project Data Science & NLP
+      </div>
+
+    </div>
+
+
+    <div>
+      Python · Scikit-learn · Streamlit
+    </div>
+
+
+  </div>
+
+</footer>
+
+
+</div>
+
+
+<!-- =========================================================
+     LANGUAGE SCRIPT
+========================================================= -->
+
+<script>
+
+const translations = {
+
+  id: {
+
+    logoSubtitle:
+      "Project Analisis Sentimen",
+
+    navBadge:
+      "Data Science · NLP",
+
+    heroLabel:
+      "Project Data Science & NLP",
+
+    heroTitleBefore:
+      "Memahami",
+
+    heroTitleAfter:
+      "Melalui Umpan Balik Pengguna.",
+
+    heroDescription:
+      "Project analisis sentimen end-to-end yang mengeksplorasi pengalaman pengguna aplikasi Mobile JKN melalui ulasan Google Play Store menggunakan Natural Language Processing dan Machine Learning.",
+
+    dashboardButton:
+      "Jelajahi Dashboard",
+
+    datasetButton:
+      "Dataset",
+
+    statReviews:
+      "Ulasan pengguna dianalisis",
+
+    statPeriod:
+      "Periode pengumpulan ulasan",
+
+    statAccuracy:
+      "Akurasi model",
+
+    overviewLabel:
+      "Gambaran Project",
+
+    overviewTitle:
+      "Dari ulasan mentah menjadi insight sentimen.",
+
+    projectTitle:
+      "Tentang Project",
+
+    projectDescription:
+      "Project ini menganalisis ulasan pengguna aplikasi Mobile JKN yang dikumpulkan dari Google Play Store. Alur pengolahan data mencakup Exploratory Data Analysis (EDA), text preprocessing, pelabelan sentimen, pembobotan kata menggunakan TF-IDF Bigram, klasifikasi dengan machine learning, evaluasi model, serta visualisasi data secara interaktif.",
+
+    technologyTitle:
+      "Teknologi",
+
+    technologyDescription:
+      "Dibangun menggunakan workflow NLP dan machine learning berbasis Python.",
+
+    performanceLabel:
+      "Performa Model",
+
+    performanceTitle:
+      "Hasil klasifikasi.",
+
+    ctaTitle:
+      "Jelajahi hasil analisis.",
+
+    ctaDescription:
+      "Gunakan dashboard untuk mengeksplorasi distribusi sentimen, kata dominan, evaluasi model, dan melakukan prediksi sentimen terhadap ulasan secara interaktif.",
+
+    openDashboard:
+      "Buka Dashboard",
+
+    footerSubtitle:
+      "Project Data Science & NLP"
+
+  },
+
+
+  en: {
+
+    logoSubtitle:
+      "Sentiment Analysis Project",
+
+    navBadge:
+      "Data Science · NLP",
+
+    heroLabel:
+      "Data Science & NLP Project",
+
+    heroTitleBefore:
+      "Understanding",
+
+    heroTitleAfter:
+      "Through User Feedback.",
+
+    heroDescription:
+      "An end-to-end sentiment analysis project exploring user experiences from Mobile JKN reviews on the Google Play Store using Natural Language Processing and Machine Learning.",
+
+    dashboardButton:
+      "Explore Dashboard",
+
+    datasetButton:
+      "Dataset",
+
+    statReviews:
+      "User reviews analyzed",
+
+    statPeriod:
+      "Review collection period",
+
+    statAccuracy:
+      "Model accuracy",
+
+    overviewLabel:
+      "Project Overview",
+
+    overviewTitle:
+      "From raw reviews to sentiment insights.",
+
+    projectTitle:
+      "The Project",
+
+    projectDescription:
+      "This project analyzes user reviews of the Mobile JKN application collected from the Google Play Store. The data processing workflow includes Exploratory Data Analysis (EDA), text preprocessing, sentiment labeling, TF-IDF Bigram feature weighting, machine learning classification, model evaluation, and interactive data visualization.",
+
+    technologyTitle:
+      "Technology Stack",
+
+    technologyDescription:
+      "Built with a Python-based NLP and machine learning workflow.",
+
+    performanceLabel:
+      "Model Performance",
+
+    performanceTitle:
+      "Classification results.",
+
+    ctaTitle:
+      "Explore the analysis.",
+
+    ctaDescription:
+      "Interact with the dashboard to explore sentiment distribution, dominant words, model evaluation, and real-time sentiment prediction.",
+
+    openDashboard:
+      "Open Dashboard",
+
+    footerSubtitle:
+      "Data Science & NLP Project"
+
+  }
+
+};
+
+
+function setLanguage(lang){
+
+  const language =
+    translations[lang]
+      ? lang
+      : "id";
+
+
+  Object.keys(
+    translations[language]
+  ).forEach(key => {
+
+    const element =
+      document.getElementById(key);
+
+    if(element){
+      element.textContent =
+        translations[language][key];
+    }
+
+  });
+
+
+  document.documentElement.lang =
+    language;
+
+
+  document.title =
+    language === "id"
+      ? "Analisis Sentimen Mobile JKN — Data Science Project"
+      : "Mobile JKN Sentiment Analysis — Data Science Project";
+
+
+  document
+    .getElementById("langID")
+    .classList.toggle(
+      "active",
+      language === "id"
+    );
+
+
+  document
+    .getElementById("langEN")
+    .classList.toggle(
+      "active",
+      language === "en"
+    );
+
+
+  localStorage.setItem(
+    "preferredLanguage",
+    language
+  );
+
+}
+
+
+/* Default Indonesia.
+   Remember previous selection. */
+
+const savedLanguage =
+  localStorage.getItem(
+    "preferredLanguage"
+  );
+
+setLanguage(
+  savedLanguage === "en"
+    ? "en"
+    : "id"
+);
+
+</script>
+
+</body>
+</html>
